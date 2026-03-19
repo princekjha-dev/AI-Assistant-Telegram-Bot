@@ -1,0 +1,98 @@
+# Git ignore file for AI Bot project
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual environments
+.venv
+venv
+ENV
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+.project
+.pydevproject
+.settings/
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.hypothesis/
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+data/backups/
+data/media/
+data/generated_images/
+
+# Logs
+logs/
+*.log
+
+# Configuration
+.env
+.env.local
+.env.*.local
+
+# Temporary files
+*.tmp
+*.temp
+tmp/
+temp/
+
+# OS
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+
+# Docker
+.dockerignore
+
+# Node (if using any frontend)
+node_modules/
+package-lock.json
+yarn.lock
+
+# Misc
+.cache/
+.vagrant/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# Keep important directories
+!data/.gitkeep
+!logs/.gitkeep
