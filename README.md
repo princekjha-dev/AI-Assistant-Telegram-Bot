@@ -26,7 +26,7 @@ A powerful, feature-rich Telegram bot powered by OpenRouter AI with image genera
 
 ### 1. Clone Repository
 ```bash
-git clone https://github.com/yourusername/ai-bot
+git clone https://github.com/princekjha-dev/AI-Assistant-Telegram-Bot.git
 cd ai-bot
 ```
 
