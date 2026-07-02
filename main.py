@@ -3,13 +3,14 @@ Main entry point for the AI Assistant Telegram Bot
 Supports both polling and webhook modes
 """
 
+from __future__ import annotations
+
 import asyncio
 import logging
-import config
-from telegram.ext import Application, CommandHandler, MessageHandler, filters, ContextTypes
-from telegram import Update
 import sys
 from pathlib import Path
+
+import config
 
 # Configure logging
 logging.basicConfig(
@@ -23,17 +24,40 @@ logging.basicConfig(
 
 logger = logging.getLogger(__name__)
 
-# Import handlers
-from handlers.commands import CommandHandlers
-from handlers.messages import MessageHandler as MessageHandlerClass
-from handlers.callbacks import CallbackHandler
-from database.db import Database
 
+def create_health_app():
+    """Create a lightweight app export for deployment platforms like Vercel."""
+
+    def app(environ, start_response):
+        path = environ.get("PATH_INFO", "/")
+        if path in {"/", "/health", "/healthz"}:
+            status = "200 OK"
+            body = b'{"status":"ok","service":"ai-assistant-telegram-bot"}'
+        else:
+            status = "404 Not Found"
+            body = b'{"error":"Not Found"}'
+
+        headers = [("Content-Type", "application/json")]
+        start_response(status, headers)
+        return [body]
+
+    return app
+
+
+app = create_health_app()
+application = app
 
 class BotApplication:
     """Main bot application class"""
     
     def __init__(self):
+        from telegram.ext import Application, CommandHandler, MessageHandler, filters
+
+        from handlers.commands import CommandHandlers
+        from handlers.messages import MessageHandler as MessageHandlerClass
+        from handlers.callbacks import CallbackHandler
+        from database.db import Database
+
         self.db = Database()
         self.db._init_db_sync()
         self.application = None
@@ -92,7 +116,7 @@ class BotApplication:
             logger.error(f"Bot error: {str(e)}", exc_info=True)
             raise
     
-    async def error_handler(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
+    async def error_handler(self, update, context):
         """Handle errors"""
         logger.error(f"Update {update} caused error: {context.error}", exc_info=True)
         
