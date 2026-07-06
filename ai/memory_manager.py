@@ -56,20 +56,28 @@ class MemoryManager:
             return False
 
     @staticmethod
-    def prepare_context_messages(chat_history: List[ChatMessage]) -> List[Dict[str, str]]:
+    def prepare_context_messages(
+        chat_history: List[ChatMessage],
+        include_summary: bool = True,
+    ) -> List[Dict[str, str]]:
         """
         Convert chat history to LLM message format.
-        Returns most recent messages within context window.
+        Returns the most recent messages and injects a compact summary when history is long.
         """
-        messages = []
+        messages: List[Dict[str, str]] = []
+        if not chat_history:
+            return messages
 
-        # Take only the most recent messages
-        recent_history = chat_history[-config.CONTEXT_WINDOW_SIZE:]
+        recent_history = chat_history[-max(1, config.CONTEXT_WINDOW_SIZE):]
+        if include_summary and len(chat_history) > max(1, config.CONTEXT_WINDOW_SIZE):
+            summary = MemoryManager.summarize_old_history(chat_history)
+            if summary:
+                messages.append({"role": "system", "content": summary})
 
         for msg in recent_history:
             messages.append({
                 "role": msg.role,
-                "content": msg.message
+                "content": msg.message,
             })
 
         return messages

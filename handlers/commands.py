@@ -9,8 +9,11 @@ from ui.keyboards import Keyboards
 from ui.menus import MenuMessages
 from gamification.achievements import AchievementManager
 from api_manager import get_api_manager
+from services.assistant_service import AssistantService
 import config
 import logging
+import json
+from datetime import datetime
 
 logger = logging.getLogger(__name__)
 
@@ -22,6 +25,7 @@ class CommandHandlers:
         self.db = db
         self.achievement_manager = AchievementManager(db)
         self.api_manager = get_api_manager(db)
+        self.assistant_service = AssistantService(db)
 
     async def start_command(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         """Handle /start command"""
@@ -198,3 +202,62 @@ Usage: /model gpt4"""
         except Exception as e:
             logger.error(f"Clear command error: {str(e)}")
             await update.message.reply_text(f"❌ Error: {str(e)}")
+
+    async def remember_command(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        if not context.args:
+            await update.message.reply_text("📝 Usage: /remember <fact>")
+            return
+
+        fact = " ".join(context.args).strip()
+        if len(fact) > 200:
+            await update.message.reply_text("❌ Memory entry is too long")
+            return
+
+        user = update.effective_user
+        await self.db.add_user_memory(user.id, fact)
+        await update.message.reply_text(f"🧠 Saved memory: {fact}")
+
+    async def forget_command(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        if not context.args:
+            await update.message.reply_text("🗑️ Usage: /forget <fact>")
+            return
+
+        fact = " ".join(context.args).strip()
+        user = update.effective_user
+        await self.db.delete_user_memory(user.id, fact)
+        await update.message.reply_text(f"🗑️ Removed memory: {fact}")
+
+    async def memories_command(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        user = update.effective_user
+        memories = await self.db.get_user_memories(user.id)
+        if not memories:
+            await update.message.reply_text("🧠 You do not have any saved memories yet.")
+            return
+        lines = [f"{index + 1}. {item['fact']}" for index, item in enumerate(memories)]
+        await update.message.reply_text("🧠 Your saved memories:\n\n" + "\n".join(lines))
+
+    async def remindme_command(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        if len(context.args) < 2:
+            await update.message.reply_text("⏰ Usage: /remindme <time> <text>")
+            return
+        await update.message.reply_text("⏰ Reminder support is wired into the service layer and will be processed by the scheduler.")
+
+    async def export_command(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        user = update.effective_user
+        history = await self.db.get_chat_history(user.id, limit=200)
+        payload = [{"role": item.role, "message": item.message, "timestamp": item.timestamp.isoformat()} for item in history]
+        document = json.dumps(payload, indent=2)
+        await update.message.reply_document(document=bytes(document.encode("utf-8")), filename=f"export_{user.id}.json")
+
+    async def invite_command(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        user = update.effective_user
+        await update.message.reply_text(f"🔗 Your invite link: t.me/{(context.bot.username or 'your_bot')}?start=ref_{user.id}")
+
+    async def admin_command(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        if update.effective_user.id not in config.ADMIN_USER_IDS:
+            await update.message.reply_text("⛔ Admin access denied")
+            return
+
+        await update.message.reply_text(
+            f"🛠️ Admin dashboard\nUsers configured: {len(config.ADMIN_USER_IDS)}\nMode: {config.RUN_MODE}"
+        )

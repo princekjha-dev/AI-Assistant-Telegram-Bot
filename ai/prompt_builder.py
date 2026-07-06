@@ -1,4 +1,4 @@
-from typing import Dict
+from typing import Dict, List
 
 PERSONALITY_PROMPTS = {
     "friendly": {
@@ -34,7 +34,12 @@ MOOD_ADAPTATIONS = {
 
 class PromptBuilder:
     @staticmethod
-    def build_system_prompt(personality: str, mood: str, user_context: Dict = None) -> str:
+    def build_system_prompt(
+        personality: str,
+        mood: str,
+        user_context: Dict = None,
+        durable_memories: List[str] | None = None,
+    ) -> str:
         """
         Build system prompt with personality, mood, and user context.
         
@@ -52,6 +57,11 @@ class PromptBuilder:
         personality_config = PERSONALITY_PROMPTS.get(personality, PERSONALITY_PROMPTS["friendly"])
         mood_adaptation = MOOD_ADAPTATIONS.get(mood, MOOD_ADAPTATIONS["neutral"])
 
+        memory_block = ""
+        if durable_memories:
+            memory_block = "\n".join([f"- {memory}" for memory in durable_memories])
+            memory_block = f"\nLONG-TERM USER MEMORY:\n{memory_block}\n"
+
         system_prompt = f"""You are a helpful AI assistant in a Telegram chat with the following characteristics:
 
 PERSONALITY: {personality.upper()}
@@ -65,7 +75,7 @@ USER MOOD: {mood.upper()}
 CONTEXT:
 - Username: {user_context.get('username', 'User')}
 - Interaction Score: {user_context.get('interaction_score', 0)}
-- Streak: {user_context.get('streak_count', 0)} days
+- Streak: {user_context.get('streak_count', 0)} days{memory_block}
 
 GUIDELINES:
 1. Stay in character with the {personality} personality
@@ -73,6 +83,7 @@ GUIDELINES:
 3. Keep responses appropriate for Telegram (avoid excessive formatting)
 4. Be concise but helpful
 5. Remember you're chatting, not writing essays
+6. Use the long-term memory carefully and naturally.
 
 Respond naturally and authentically."""
 

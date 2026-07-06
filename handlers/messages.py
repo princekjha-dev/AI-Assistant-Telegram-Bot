@@ -8,6 +8,8 @@ from database.db import Database
 from api_manager import get_api_manager
 from gamification.streaks import StreakManager
 from gamification.achievements import AchievementManager
+from services.assistant_service import AssistantService
+from utils.rate_limit import RateLimiter
 from utils.security import SecurityValidator
 import config
 import logging
@@ -22,6 +24,8 @@ class MessageHandler:
         self.db = db
         self.achievement_manager = AchievementManager(db)
         self.api_manager = get_api_manager(db)
+        self.assistant_service = AssistantService(db)
+        self.rate_limiter = RateLimiter(db)
 
     async def handle_message(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         """Handle incoming text messages"""
@@ -82,11 +86,12 @@ class MessageHandler:
         # Send typing indicator
         await update.message.chat.send_action(action="typing")
 
-        # Generate response using unified API manager
-        response = await self.api_manager.generate_response(
+        # Generate response using the assistant service
+        response = await self.assistant_service.generate_response(
+            user_id=user.id,
             user_message=message_text,
             user_context=user_context,
-            conversation_history=messages
+            conversation_history=messages,
         )
 
         # Save assistant response

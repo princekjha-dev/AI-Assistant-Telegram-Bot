@@ -47,8 +47,9 @@ REPLICATE_API_TOKEN = os.getenv("REPLICATE_API_TOKEN", "")
 LLM_PROVIDER = os.getenv("LLM_PROVIDER", "openrouter").lower()
 
 # Primary model configuration (provider-agnostic names)
-PRIMARY_MODEL = os.getenv("PRIMARY_MODEL", "gpt-4-turbo")
-FALLBACK_MODEL = os.getenv("FALLBACK_MODEL", "claude-3-sonnet")
+PRIMARY_MODEL = os.getenv("PRIMARY_MODEL", "openai/gpt-4.1-mini")
+FALLBACK_MODEL = os.getenv("FALLBACK_MODEL", "openai/gpt-4o-mini")
+DEFAULT_MODEL = os.getenv("DEFAULT_MODEL", PRIMARY_MODEL)
 
 # Image generation model
 IMAGE_GENERATION_MODEL = os.getenv("IMAGE_GENERATION_MODEL", "stabilityai/stable-diffusion-3")
@@ -124,6 +125,11 @@ PORT = int(os.getenv("PORT", "8080"))
 HOST = os.getenv("HOST", "0.0.0.0")
 WEBHOOK_URL = os.getenv("WEBHOOK_URL", "")  # For production webhook mode
 POLLING_MODE = os.getenv("POLLING_MODE", "true").lower() == "true"
+RUN_MODE = os.getenv("RUN_MODE", "polling").lower()
+WEBHOOK_SECRET_TOKEN = os.getenv("WEBHOOK_SECRET_TOKEN", "")
+ADMIN_USER_IDS = [int(user_id) for user_id in os.getenv("ADMIN_USER_IDS", "").split(",") if user_id.strip()]
+STRUCTURED_LOGS = os.getenv("STRUCTURED_LOGS", "false").lower() == "true"
+MAX_USER_MEMORIES = int(os.getenv("MAX_USER_MEMORIES", "20"))
 
 # ============================================================================
 # STORAGE & MEDIA

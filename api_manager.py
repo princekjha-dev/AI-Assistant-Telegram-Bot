@@ -7,6 +7,7 @@ import asyncio
 from typing import List, Dict, Optional
 import httpx
 from ai.image_generator import ImageGenerator
+from ai.memory_manager import MemoryManager
 from ai.mood_detector import MoodDetector
 from ai.prompt_builder import PromptBuilder
 import config

@@ -83,6 +83,16 @@ class Database:
                 )
             """)
 
+            conn.execute("""
+                CREATE TABLE IF NOT EXISTS user_memories (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    user_id INTEGER NOT NULL,
+                    fact TEXT NOT NULL,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    FOREIGN KEY (user_id) REFERENCES users(user_id)
+                )
+            """)
+
             conn.commit()
             self._seed_achievements_sync(conn)
 
@@ -196,6 +206,47 @@ class Database:
 
     async def clear_chat_history(self, user_id: int):
         await asyncio.to_thread(self._clear_chat_history_sync, user_id)
+
+    def _add_user_memory_sync(self, user_id: int, fact: str):
+        with self._get_conn() as conn:
+            conn.execute(
+                "INSERT INTO user_memories (user_id, fact) VALUES (?, ?)",
+                (user_id, fact)
+            )
+            conn.commit()
+
+    async def add_user_memory(self, user_id: int, fact: str):
+        await asyncio.to_thread(self._add_user_memory_sync, user_id, fact)
+
+    def _get_user_memories_sync(self, user_id: int) -> List[dict]:
+        with self._get_conn() as conn:
+            cursor = conn.execute(
+                "SELECT fact FROM user_memories WHERE user_id = ? ORDER BY created_at DESC",
+                (user_id,)
+            )
+            return [{"fact": row["fact"]} for row in cursor.fetchall()]
+
+    async def get_user_memories(self, user_id: int) -> List[dict]:
+        return await asyncio.to_thread(self._get_user_memories_sync, user_id)
+
+    def _delete_user_memory_sync(self, user_id: int, fact: str):
+        with self._get_conn() as conn:
+            conn.execute(
+                "DELETE FROM user_memories WHERE user_id = ? AND fact = ?",
+                (user_id, fact)
+            )
+            conn.commit()
+
+    async def delete_user_memory(self, user_id: int, fact: str):
+        await asyncio.to_thread(self._delete_user_memory_sync, user_id, fact)
+
+    def _clear_user_memories_sync(self, user_id: int):
+        with self._get_conn() as conn:
+            conn.execute("DELETE FROM user_memories WHERE user_id = ?", (user_id,))
+            conn.commit()
+
+    async def clear_user_memories(self, user_id: int):
+        await asyncio.to_thread(self._clear_user_memories_sync, user_id)
 
     def _get_achievements_sync(self) -> List[Achievement]:
         with self._get_conn() as conn:
