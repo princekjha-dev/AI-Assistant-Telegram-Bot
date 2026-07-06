@@ -16,7 +16,7 @@ python-dotenv==1.0.0
 pydantic==2.5.0
 
 # Scheduling & Parsing
-apscheduler==3.10.0
+apscheduler==3.10.4
 dateparser==1.2.0
 
 # Utilities & Image Processing
