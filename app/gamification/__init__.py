@@ -1,3 +1,3 @@
-from .service import ACHIEVEMENT_DEFINITIONS, REWARDS
+from .service import ACHIEVEMENT_DEFINITIONS, REWARDS, ensure_achievements_seeded
 
-__all__ = ["ACHIEVEMENT_DEFINITIONS", "REWARDS"]
+__all__ = ["ACHIEVEMENT_DEFINITIONS", "REWARDS", "ensure_achievements_seeded"]
