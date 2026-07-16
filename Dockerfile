@@ -14,7 +14,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 COPY requirements.txt .
-RUN pip install --user --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt
 
 
 # ─────────────────────────────────────────────────────────────
@@ -27,7 +27,8 @@ LABEL org.opencontainers.image.version="1.0.0"
 WORKDIR /app
 
 # Copy installed packages from builder
-COPY --from=builder /root/.local /root/.local
+COPY --from=builder /usr/local/lib/python3.12/site-packages /usr/local/lib/python3.12/site-packages
+COPY --from=builder /usr/local/bin /usr/local/bin
 
 # System runtime deps (for audio processing)
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -39,9 +40,6 @@ COPY . .
 
 # Create data and logs directories
 RUN mkdir -p data logs
-
-# Ensure scripts in .local are usable
-ENV PATH=/root/.local/bin:$PATH
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=10s --retries=3 \
