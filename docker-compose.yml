@@ -1,0 +1,41 @@
+version: "3.9"
+
+services:
+  nexus:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: nexus-bot
+    restart: unless-stopped
+
+    env_file:
+      - .env
+
+    volumes:
+      # Persist database across container restarts
+      - nexus_data:/app/data
+      # Persist logs
+      - nexus_logs:/app/logs
+
+    healthcheck:
+      test: ["CMD", "python", "-c", "import sqlite3; sqlite3.connect('data/nexus.db').close()"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
+
+    # Webhook mode: uncomment to expose port
+    # ports:
+    #   - "8443:8443"
+
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+volumes:
+  nexus_data:
+    driver: local
+  nexus_logs:
+    driver: local
